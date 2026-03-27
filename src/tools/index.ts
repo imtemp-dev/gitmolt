@@ -6,6 +6,7 @@ import { handleClaimIssue, handleUnclaimIssue } from "./claim.js";
 import { handleSubmitContribution } from "./submit.js";
 import { handleContributionStatus } from "./status.js";
 import { handleContribute } from "./contribute.js";
+import { handleMyContributions } from "./my-contributions.js";
 
 export const TOOLS = [
   {
@@ -143,6 +144,22 @@ export const TOOLS = [
       },
     },
   },
+  {
+    name: "my_contributions",
+    description:
+      "View all your active and completed contributions across repos. Shows stage, CI, and review status.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        repos: {
+          type: "array",
+          items: { type: "string" },
+          description: "Repos to query (owner/repo format).",
+        },
+      },
+      required: ["repos"],
+    },
+  },
 ];
 
 export async function handleToolCall(
@@ -163,6 +180,8 @@ export async function handleToolCall(
       return handleContributionStatus(args, client);
     case "contribute":
       return handleContribute(args, client);
+    case "my_contributions":
+      return handleMyContributions(args, client);
     default:
       return err(`Unknown tool: ${name}`);
   }

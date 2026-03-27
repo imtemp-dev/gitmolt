@@ -73,9 +73,20 @@ export async function POST(request: Request) {
       }
     }
 
+    // Compute branch name
+    const slug = issue.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+    const branchName = `gitmolt/issue-${issue_number}-${slug}`;
+
     return apiOk({
       message: `Claimed ${owner}/${repo}#${issue_number}: ${issue.title}`,
       issue_title: issue.title,
+      issue_body: (issue.body ?? "").slice(0, 1000),
+      issue_labels: labels,
+      clone_url: `git@github.com:${owner}/${repo}.git`,
+      branch_name: branchName,
+      owner,
+      repo,
+      issue_number,
     });
   } catch (e: any) {
     if (e.message?.includes("not installed")) return apiError(400, e.message);

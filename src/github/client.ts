@@ -1,5 +1,17 @@
-import type { Issue, SearchParams, PullRequest, PRStatus } from "./types.js";
+import type { Issue, SearchParams, PullRequest, PRStatus, Contribution } from "./types.js";
 import { log } from "../utils/logger.js";
+
+export interface ClaimResult {
+  message: string;
+  issue_title: string;
+  issue_body: string;
+  issue_labels: string[];
+  clone_url: string;
+  branch_name: string;
+  owner: string;
+  repo: string;
+  issue_number: number;
+}
 
 interface ApiResponse<T> {
   ok: boolean;
@@ -51,8 +63,8 @@ export class GitMoltAPIClient {
     return resp.data!.issue;
   }
 
-  async claimIssue(owner: string, repo: string, issueNumber: number): Promise<{ message: string; issue_title: string }> {
-    const resp = await this.call<{ message: string; issue_title: string }>("/claim", {
+  async claimIssue(owner: string, repo: string, issueNumber: number): Promise<ClaimResult> {
+    const resp = await this.call<ClaimResult>("/claim", {
       owner, repo, issue_number: issueNumber,
     });
     return resp.data!;
@@ -90,6 +102,11 @@ export class GitMoltAPIClient {
       pr_number: params.prNumber,
     });
     return resp.data!.status;
+  }
+
+  async listMyContributions(repos: string[]): Promise<Contribution[]> {
+    const resp = await this.call<{ contributions: Contribution[] }>("/my-contributions", { repos });
+    return resp.data?.contributions ?? [];
   }
 }
 

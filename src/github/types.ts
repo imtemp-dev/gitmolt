@@ -65,3 +65,24 @@ export interface Comment {
   user: { login: string } | null;
   created_at: string;
 }
+
+export interface Contribution {
+  owner: string;
+  repo: string;
+  issueNumber: number | null;
+  pr: {
+    number: number;
+    title: string;
+    url: string;
+    state: string;
+    isDraft: boolean;
+    branch: string;
+  } | null;
+  ciStatus: string;
+  reviewStatus: string;
+  stage: "claimed" | "active" | "expired" | "merged" | "closed";
+  issueTitle?: string;
+  claimedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}

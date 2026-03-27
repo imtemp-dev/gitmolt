@@ -4,6 +4,7 @@ import { handleClaimIssue, handleUnclaimIssue } from "../tools/claim.js";
 import { handleSubmitContribution } from "../tools/submit.js";
 import { handleContributionStatus } from "../tools/status.js";
 import { handleContribute } from "../tools/contribute.js";
+import { handleMyContributions } from "../tools/my-contributions.js";
 import type { GitMoltAPIClient } from "../github/client.js";
 
 function mockClient(overrides: Partial<Record<keyof GitMoltAPIClient, any>> = {}): GitMoltAPIClient {
@@ -14,7 +15,13 @@ function mockClient(overrides: Partial<Record<keyof GitMoltAPIClient, any>> = {}
       body: "Details", labels: ["ai-welcome"], url: "https://github.com/test/repo/issues/42",
       createdAt: "2026-03-27T00:00:00Z", isClaimed: false, effort: "small",
     }),
-    claimIssue: vi.fn().mockResolvedValue({ message: "Claimed test/repo#42: Fix bug", issue_title: "Fix bug" }),
+    claimIssue: vi.fn().mockResolvedValue({
+      message: "Claimed test/repo#42: Fix bug", issue_title: "Fix bug",
+      issue_body: "Details here", issue_labels: ["ai-welcome"],
+      clone_url: "git@github.com:test/repo.git", branch_name: "gitmolt/issue-42-fix-bug",
+      owner: "test", repo: "repo", issue_number: 42,
+    }),
+    listMyContributions: vi.fn().mockResolvedValue([]),
     unclaimIssue: vi.fn().mockResolvedValue({ message: "Released claim on test/repo#42" }),
     submitContribution: vi.fn().mockResolvedValue({
       number: 100, url: "https://github.com/test/repo/pull/100",
@@ -132,5 +139,76 @@ describe("contribute", () => {
   it("errors without owner/repo in direct mode", async () => {
     const result = await handleContribute({ issue_number: 42 }, mockClient());
     expect(result.isError).toBe(true);
+  });
+});
+
+describe("claim_issue (enhanced response)", () => {
+  it("includes git workflow instructions", async () => {
+    const client = mockClient();
+    const result = await handleClaimIssue({ owner: "test", repo: "repo", issue_number: 42 }, client);
+    expect(result.content[0].text).toContain("git clone");
+    expect(result.content[0].text).toContain("git checkout -b gitmolt/issue-42-fix-bug");
+    expect(result.content[0].text).toContain("git push");
+    expect(result.content[0].text).toContain("submit_contribution");
+    expect(result.content[0].text).toContain("30 minutes");
+  });
+});
+
+describe("my_contributions", () => {
+  it("returns error when no repos", async () => {
+    const result = await handleMyContributions({}, mockClient());
+    expect(result.isError).toBe(true);
+  });
+
+  it("returns no-contributions message", async () => {
+    const result = await handleMyContributions({ repos: ["test/repo"] }, mockClient());
+    expect(result.content[0].text).toContain("No contributions found");
+  });
+
+  it("formats active contributions", async () => {
+    const client = mockClient({
+      listMyContributions: vi.fn().mockResolvedValue([
+        {
+          owner: "test", repo: "repo", issueNumber: 42,
+          pr: { number: 100, title: "Fix bug", url: "https://...", state: "open", isDraft: true, branch: "gitmolt/issue-42-fix" },
+          ciStatus: "success", reviewStatus: "pending", stage: "active",
+          createdAt: "2026-03-27T00:00:00Z", updatedAt: "2026-03-27T00:00:00Z",
+        },
+      ]),
+    });
+    const result = await handleMyContributions({ repos: ["test/repo"] }, client);
+    expect(result.content[0].text).toContain("Active Contributions");
+    expect(result.content[0].text).toContain("PR #100");
+    expect(result.content[0].text).toContain("success");
+  });
+
+  it("formats merged contributions", async () => {
+    const client = mockClient({
+      listMyContributions: vi.fn().mockResolvedValue([
+        {
+          owner: "test", repo: "repo", issueNumber: 1,
+          pr: { number: 3, title: "Fix", url: "https://...", state: "merged", isDraft: false, branch: "gitmolt/issue-1" },
+          ciStatus: "success", reviewStatus: "approved", stage: "merged",
+          createdAt: "2026-03-27T00:00:00Z", updatedAt: "2026-03-27T00:00:00Z",
+        },
+      ]),
+    });
+    const result = await handleMyContributions({ repos: ["test/repo"] }, client);
+    expect(result.content[0].text).toContain("Completed");
+    expect(result.content[0].text).toContain("merged ✅");
+  });
+
+  it("formats expired claims", async () => {
+    const client = mockClient({
+      listMyContributions: vi.fn().mockResolvedValue([
+        {
+          owner: "test", repo: "repo", issueNumber: 2, pr: null,
+          ciStatus: "none", reviewStatus: "none", stage: "expired",
+          issueTitle: "Add feature", createdAt: "2026-03-27T00:00:00Z", updatedAt: "2026-03-27T00:00:00Z",
+        },
+      ]),
+    });
+    const result = await handleMyContributions({ repos: ["test/repo"] }, client);
+    expect(result.content[0].text).toContain("expired");
   });
 });

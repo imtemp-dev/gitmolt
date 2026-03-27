@@ -15,8 +15,27 @@ export async function handleClaimIssue(
   }
 
   try {
-    const result = await client.claimIssue(owner, repo, issueNumber);
-    return ok(`${result.message}\n\nYou have 30 minutes to create a PR. Use submit_contribution when ready.`);
+    const r = await client.claimIssue(owner, repo, issueNumber);
+
+    const lines = [
+      `✅ ${r.message}`,
+      "",
+      "Next steps:",
+      `1. git clone ${r.clone_url} /tmp/gitmolt/${r.repo}`,
+      `2. cd /tmp/gitmolt/${r.repo}`,
+      `3. git checkout -b ${r.branch_name}`,
+      `4. Implement the fix (issue description below)`,
+      `5. git add -A && git commit -m "feat: ${r.issue_title}"`,
+      `6. git push origin ${r.branch_name}`,
+      `7. Call submit_contribution with owner="${r.owner}", repo="${r.repo}", issue_number=${r.issue_number}`,
+      "",
+      "⏱️ 30 minutes remaining",
+      "",
+      "--- Issue Description ---",
+      r.issue_body || "(no description)",
+    ];
+
+    return ok(lines.join("\n"));
   } catch (e) {
     return err((e as Error).message);
   }
