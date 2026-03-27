@@ -5,6 +5,9 @@ import { handleSubmitContribution } from "../tools/submit.js";
 import { handleContributionStatus } from "../tools/status.js";
 import { handleContribute } from "../tools/contribute.js";
 import { handleMyContributions } from "../tools/my-contributions.js";
+import { handleReadFile } from "../tools/read-file.js";
+import { handleUpdateFile } from "../tools/update-file.js";
+import { handleCILogs } from "../tools/ci-logs.js";
 import type { GitMoltAPIClient } from "../github/client.js";
 
 function mockClient(overrides: Partial<Record<keyof GitMoltAPIClient, any>> = {}): GitMoltAPIClient {
@@ -17,11 +20,18 @@ function mockClient(overrides: Partial<Record<keyof GitMoltAPIClient, any>> = {}
     }),
     claimIssue: vi.fn().mockResolvedValue({
       message: "Claimed test/repo#42: Fix bug", issue_title: "Fix bug",
-      issue_body: "Details here", issue_labels: ["ai-welcome"],
+      issue_body: "Details here", issue_labels: ["ai-welcome", "effort:small"],
       clone_url: "git@github.com:test/repo.git", branch_name: "gitmolt/issue-42-fix-bug",
       owner: "test", repo: "repo", issue_number: 42,
     }),
     listMyContributions: vi.fn().mockResolvedValue([]),
+    readFile: vi.fn().mockResolvedValue({ content: "hello world", sha: "abc123", size: 11 }),
+    updateFile: vi.fn().mockResolvedValue({ commit_sha: "def456", message: "Updated file.ts on main" }),
+    getCILogs: vi.fn().mockResolvedValue({
+      overall: "success", total: 2, failed: 0, head_sha: "abc",
+      checks: [{ name: "build", status: "completed", conclusion: "success", output_title: null, output_summary: null, html_url: null }],
+      annotations: {},
+    }),
     unclaimIssue: vi.fn().mockResolvedValue({ message: "Released claim on test/repo#42" }),
     submitContribution: vi.fn().mockResolvedValue({
       number: 100, url: "https://github.com/test/repo/pull/100",
@@ -142,15 +152,29 @@ describe("contribute", () => {
   });
 });
 
-describe("claim_issue (enhanced response)", () => {
-  it("includes git workflow instructions", async () => {
-    const client = mockClient();
+describe("claim_issue (effort-based guidance)", () => {
+  it("shows read_file/update_file flow for effort:small", async () => {
+    const client = mockClient(); // mock has effort:small in issue_labels
+    const result = await handleClaimIssue({ owner: "test", repo: "repo", issue_number: 42 }, client);
+    expect(result.content[0].text).toContain("read_file");
+    expect(result.content[0].text).toContain("update_file");
+    expect(result.content[0].text).toContain("submit_contribution");
+    expect(result.content[0].text).toContain("no git clone needed");
+    expect(result.content[0].text).toContain("30 minutes");
+  });
+
+  it("shows git clone flow for non-small effort", async () => {
+    const client = mockClient({
+      claimIssue: vi.fn().mockResolvedValue({
+        message: "Claimed test/repo#42: Fix bug", issue_title: "Fix bug",
+        issue_body: "Details", issue_labels: ["ai-welcome", "effort:medium"],
+        clone_url: "git@github.com:test/repo.git", branch_name: "gitmolt/issue-42-fix-bug",
+        owner: "test", repo: "repo", issue_number: 42,
+      }),
+    });
     const result = await handleClaimIssue({ owner: "test", repo: "repo", issue_number: 42 }, client);
     expect(result.content[0].text).toContain("git clone");
-    expect(result.content[0].text).toContain("git checkout -b gitmolt/issue-42-fix-bug");
     expect(result.content[0].text).toContain("git push");
-    expect(result.content[0].text).toContain("submit_contribution");
-    expect(result.content[0].text).toContain("30 minutes");
   });
 });
 
@@ -210,5 +234,64 @@ describe("my_contributions", () => {
     });
     const result = await handleMyContributions({ repos: ["test/repo"] }, client);
     expect(result.content[0].text).toContain("expired");
+  });
+});
+
+describe("read_file", () => {
+  it("reads file successfully", async () => {
+    const result = await handleReadFile({ owner: "test", repo: "repo", path: "src/main.ts" }, mockClient());
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("hello world");
+    expect(result.content[0].text).toContain("sha: abc123");
+  });
+
+  it("returns error for missing params", async () => {
+    const result = await handleReadFile({}, mockClient());
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe("update_file", () => {
+  it("updates file successfully", async () => {
+    const result = await handleUpdateFile({
+      owner: "test", repo: "repo", path: "src/main.ts",
+      content: "new content", branch: "fix-branch", message: "fix: update",
+    }, mockClient());
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("Updated");
+    expect(result.content[0].text).toContain("def456");
+  });
+
+  it("returns error for missing params", async () => {
+    const result = await handleUpdateFile({}, mockClient());
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe("get_ci_logs", () => {
+  it("shows CI status", async () => {
+    const result = await handleCILogs({ owner: "test", repo: "repo", pr_number: 100 }, mockClient());
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("CI Status: success");
+    expect(result.content[0].text).toContain("build");
+  });
+
+  it("shows error details for failures", async () => {
+    const client = mockClient({
+      getCILogs: vi.fn().mockResolvedValue({
+        overall: "failure", total: 1, failed: 1, head_sha: "abc",
+        checks: [{ name: "test", status: "completed", conclusion: "failure", output_title: "Tests failed", output_summary: null, html_url: null }],
+        annotations: { test: [{ path: "src/main.ts", start_line: 42, message: "undefined variable", annotation_level: "failure" }] },
+      }),
+    });
+    const result = await handleCILogs({ owner: "test", repo: "repo", pr_number: 100 }, client);
+    expect(result.content[0].text).toContain("failure");
+    expect(result.content[0].text).toContain("src/main.ts:42");
+    expect(result.content[0].text).toContain("undefined variable");
+  });
+
+  it("returns error for missing params", async () => {
+    const result = await handleCILogs({}, mockClient());
+    expect(result.isError).toBe(true);
   });
 });

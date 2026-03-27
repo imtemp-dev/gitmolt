@@ -108,6 +108,47 @@ export class GitMoltAPIClient {
     const resp = await this.call<{ contributions: Contribution[] }>("/my-contributions", { repos });
     return resp.data?.contributions ?? [];
   }
+
+  async readFile(owner: string, repo: string, path: string, branch?: string): Promise<{ content: string; sha: string; size: number }> {
+    const resp = await this.call<{ content: string; sha: string; size: number }>("/read-file", {
+      owner, repo, path, branch,
+    });
+    return resp.data!;
+  }
+
+  async updateFile(params: {
+    owner: string; repo: string; path: string; content: string;
+    branch: string; message: string; sha?: string;
+  }): Promise<{ commit_sha: string; message: string }> {
+    const resp = await this.call<{ commit_sha: string; message: string }>("/update-file", params);
+    return resp.data!;
+  }
+
+  async getCILogs(owner: string, repo: string, prNumber: number): Promise<CILogsResult> {
+    const resp = await this.call<CILogsResult>("/ci-logs", { owner, repo, pr_number: prNumber });
+    return resp.data!;
+  }
+}
+
+export interface CILogsResult {
+  overall: string;
+  total: number;
+  failed: number;
+  head_sha: string;
+  checks: Array<{
+    name: string;
+    status: string;
+    conclusion: string | null;
+    output_title: string | null;
+    output_summary: string | null;
+    html_url: string | null;
+  }>;
+  annotations: Record<string, Array<{
+    path: string;
+    start_line: number;
+    message: string;
+    annotation_level: string;
+  }>>;
 }
 
 export class ApiError extends Error {

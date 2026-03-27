@@ -7,6 +7,9 @@ import { handleSubmitContribution } from "./submit.js";
 import { handleContributionStatus } from "./status.js";
 import { handleContribute } from "./contribute.js";
 import { handleMyContributions } from "./my-contributions.js";
+import { handleReadFile } from "./read-file.js";
+import { handleUpdateFile } from "./update-file.js";
+import { handleCILogs } from "./ci-logs.js";
 
 export const TOOLS = [
   {
@@ -160,6 +163,53 @@ export const TOOLS = [
       required: ["repos"],
     },
   },
+  {
+    name: "read_file",
+    description:
+      "Read a file from a remote GitHub repo. Returns content and sha (needed for update_file).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        owner: { type: "string", description: "Repository owner." },
+        repo: { type: "string", description: "Repository name." },
+        path: { type: "string", description: "File path (e.g., 'src/main.ts')." },
+        branch: { type: "string", description: "Branch name (default: repo default branch)." },
+      },
+      required: ["owner", "repo", "path"],
+    },
+  },
+  {
+    name: "update_file",
+    description:
+      "Update or create a file on a remote GitHub repo branch. Use read_file first to get the sha for updates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        path: { type: "string", description: "File path to update." },
+        content: { type: "string", description: "New file content (full file, not a diff)." },
+        branch: { type: "string", description: "Target branch." },
+        message: { type: "string", description: "Commit message." },
+        sha: { type: "string", description: "Current file sha from read_file (required for updates, omit for new files)." },
+      },
+      required: ["owner", "repo", "path", "content", "branch", "message"],
+    },
+  },
+  {
+    name: "get_ci_logs",
+    description:
+      "Get CI check results and error details for a PR. Shows which checks failed and error annotations with file:line.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        pr_number: { type: "number", description: "Pull request number." },
+      },
+      required: ["owner", "repo", "pr_number"],
+    },
+  },
 ];
 
 export async function handleToolCall(
@@ -182,6 +232,12 @@ export async function handleToolCall(
       return handleContribute(args, client);
     case "my_contributions":
       return handleMyContributions(args, client);
+    case "read_file":
+      return handleReadFile(args, client);
+    case "update_file":
+      return handleUpdateFile(args, client);
+    case "get_ci_logs":
+      return handleCILogs(args, client);
     default:
       return err(`Unknown tool: ${name}`);
   }
