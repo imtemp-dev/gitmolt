@@ -5,13 +5,13 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig } from "./config.js";
-import { GitMoltClient } from "./github/client.js";
+import { GitMoltAPIClient } from "./github/client.js";
 import { TOOLS, handleToolCall } from "./tools/index.js";
 import { log } from "./utils/logger.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const client = new GitMoltClient(config);
+  const client = new GitMoltAPIClient(config.apiUrl);
 
   const server = new Server(
     { name: "gitmolt", version: "0.1.0" },
@@ -24,29 +24,22 @@ async function main(): Promise<void> {
 
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const { name, arguments: args } = req.params;
-    log("info", `Tool call: ${name}`, { args });
+    log("info", `Tool call: ${name}`);
     try {
       const result = await handleToolCall(name, args ?? {}, client);
       return result as unknown as Record<string, unknown>;
     } catch (error) {
-      log("error", `Tool ${name} failed`, {
-        error: (error as Error).message,
-      });
+      log("error", `Tool ${name} failed`, { error: (error as Error).message });
       return {
-        content: [
-          { type: "text" as const, text: `Internal error: ${(error as Error).message}` },
-        ],
+        content: [{ type: "text" as const, text: `Internal error: ${(error as Error).message}` }],
         isError: true,
-      } as Record<string, unknown>;
+      } as unknown as Record<string, unknown>;
     }
   });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  log("info", "GitMolt MCP server started", {
-    repos: config.repos,
-    defaultEffort: config.defaultEffort,
-  });
+  log("info", "GitMolt MCP server started", { apiUrl: config.apiUrl });
 }
 
 process.on("SIGTERM", () => process.exit(0));

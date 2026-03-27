@@ -1,12 +1,11 @@
-import type { GitMoltClient } from "../github/client.js";
+import type { GitMoltAPIClient } from "../github/client.js";
 import type { ToolResponse } from "../types.js";
 import { ok, err } from "../types.js";
 import { handleBrowseIssues } from "./browse.js";
-import { classifyError } from "../github/errors.js";
 
 export async function handleContribute(
   args: Record<string, unknown>,
-  client: GitMoltClient
+  client: GitMoltAPIClient
 ): Promise<ToolResponse> {
   const issueNumber = args.issue_number as number | undefined;
   const owner = args.owner as string | undefined;
@@ -15,11 +14,8 @@ export async function handleContribute(
   // Path B: specific issue
   if (issueNumber) {
     if (!owner || !repo) {
-      return err(
-        "Provide owner and repo with issue_number (e.g., contribute with owner='foo', repo='bar', issue_number=42)."
-      );
+      return err("Provide owner and repo with issue_number.");
     }
-
     try {
       const issue = await client.getIssue(owner, repo, issueNumber);
       const effortTag = issue.effort ? ` [effort:${issue.effort}]` : "";
@@ -27,15 +23,12 @@ export async function handleContribute(
 
       return ok(
         `Issue: ${owner}/${repo}#${issueNumber}${effortTag}${claimedTag}\n\n` +
-          `Title: ${issue.title}\n\n` +
-          `${issue.body}\n\n` +
-          `Labels: ${issue.labels.join(", ")}\n` +
-          `URL: ${issue.url}\n\n` +
-          `To work on this issue, call claim_issue with owner="${owner}", repo="${repo}", issue_number=${issueNumber}.`
+        `Title: ${issue.title}\n\n${issue.body}\n\n` +
+        `Labels: ${issue.labels.join(", ")}\nURL: ${issue.url}\n\n` +
+        `To work on this issue, call claim_issue with owner="${owner}", repo="${repo}", issue_number=${issueNumber}.`
       );
-    } catch (raw) {
-      const error = classifyError(raw);
-      return err(`Failed to fetch issue: ${error.message}`);
+    } catch (e) {
+      return err((e as Error).message);
     }
   }
 

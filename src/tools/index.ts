@@ -1,4 +1,4 @@
-import type { GitMoltClient } from "../github/client.js";
+import type { GitMoltAPIClient } from "../github/client.js";
 import type { ToolResponse } from "../types.js";
 import { err } from "../types.js";
 import { handleBrowseIssues } from "./browse.js";
@@ -148,7 +148,7 @@ export const TOOLS = [
 export async function handleToolCall(
   name: string,
   args: Record<string, unknown>,
-  client: GitMoltClient
+  client: GitMoltAPIClient
 ): Promise<ToolResponse> {
   switch (name) {
     case "browse_issues":

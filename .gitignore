@@ -1,26 +1,3 @@
-# Dependencies
-node_modules/
-
-# Build
-dist/
-.next/
-
-# Environment / Secrets
-.env
-.env.local
-.env.*.local
-*.pem
-.gitmolt-app.pem
-
-# IDE
-.claude/
-.mcp.json
-
-# BTS local state
+# bts local data (runtime, not committed)
 .bts/local/
-
-# OS
-.DS_Store
-
-# Test scripts (not part of the product)
-scripts/
+dist/
