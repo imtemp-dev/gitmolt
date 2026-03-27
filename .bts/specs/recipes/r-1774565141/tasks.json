@@ -1,0 +1,157 @@
+{
+  "recipe_id": "r-1774565141",
+  "started_at": "2026-03-27T00:10:00Z",
+  "updated_at": "2026-03-27T00:30:00Z",
+  "tasks": [
+    {
+      "id": "t-001",
+      "file": "package.json",
+      "action": "create",
+      "status": "done",
+      "description": "Project config with dependencies: @modelcontextprotocol/sdk, @octokit/rest, @octokit/auth-app, typescript, vitest, tsx",
+      "depends_on": [],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-002",
+      "file": "tsconfig.json",
+      "action": "create",
+      "status": "done",
+      "description": "TypeScript config: ES2022 target, ESNext modules, strict mode",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-003",
+      "file": "src/types.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Shared MCP tool response types — see final.md Section 6",
+      "depends_on": ["t-002"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-004",
+      "file": "src/utils/logger.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Stderr JSON logging — see final.md Section 5.4",
+      "depends_on": ["t-002"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-005",
+      "file": "src/config.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Env var parsing, validation, GitMoltConfig type — see final.md Section 2",
+      "depends_on": ["t-003"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-006",
+      "file": "src/github/types.ts",
+      "action": "create",
+      "status": "done",
+      "description": "GitHub API type definitions: Issue, SearchParams, CreatePRParams, PullRequest, PRStatus, CheckRun, Comment — see final.md Section 3.4",
+      "depends_on": ["t-003"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-007",
+      "file": "src/github/errors.ts",
+      "action": "create",
+      "status": "done",
+      "description": "GitHubError class, error classification, retry logic — see final.md Section 3.3",
+      "depends_on": ["t-003"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-008",
+      "file": "src/github/client.ts",
+      "action": "create",
+      "status": "done",
+      "description": "GitMoltClient class with all GitHub API operations — see final.md Sections 3.1-3.2 and scaffolding 7.3",
+      "depends_on": ["t-005", "t-006", "t-007"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-009",
+      "file": "src/tools/browse.ts",
+      "action": "create",
+      "status": "done",
+      "description": "browse_issues tool handler — see final.md Section 4.1",
+      "depends_on": ["t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-010",
+      "file": "src/tools/claim.ts",
+      "action": "create",
+      "status": "done",
+      "description": "claim_issue + unclaim_issue handlers with race condition mitigation — see final.md Sections 4.2-4.3",
+      "depends_on": ["t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-011",
+      "file": "src/tools/submit.ts",
+      "action": "create",
+      "status": "done",
+      "description": "submit_contribution handler — see final.md Section 4.4",
+      "depends_on": ["t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-012",
+      "file": "src/tools/status.ts",
+      "action": "create",
+      "status": "done",
+      "description": "contribution_status handler with CI aggregation — see final.md Section 4.5",
+      "depends_on": ["t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-013",
+      "file": "src/tools/contribute.ts",
+      "action": "create",
+      "status": "done",
+      "description": "contribute orchestrator handler (Path A browse, Path B direct) — see final.md Section 4.6",
+      "depends_on": ["t-009"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-014",
+      "file": "src/tools/index.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Tool definitions, schemas, dispatch — see final.md Sections 5.2-5.3 and scaffolding 7.2",
+      "depends_on": ["t-009", "t-010", "t-011", "t-012", "t-013"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-015",
+      "file": "src/server.ts",
+      "action": "create",
+      "status": "done",
+      "description": "MCP server entry point — see final.md Section 5.1 and scaffolding 7.1",
+      "depends_on": ["t-005", "t-008", "t-014"],
+      "retry_count": 0,
+      "last_error": ""
+    }
+  ]
+}

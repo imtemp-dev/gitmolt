@@ -1,0 +1,18 @@
+{
+  "recipe_id": "r-1774565141",
+  "run_at": "2026-03-27T00:14:00Z",
+  "framework": "vitest",
+  "iterations": 1,
+  "status": "pass",
+  "total": 38,
+  "passed": 38,
+  "failed": 0,
+  "skipped": 0,
+  "test_files": [
+    "src/__tests__/config.test.ts",
+    "src/__tests__/errors.test.ts",
+    "src/__tests__/tools.test.ts"
+  ],
+  "failures": [],
+  "notes": []
+}

@@ -1,0 +1,147 @@
+{
+  "recipe_id": "r-1774573673",
+  "started_at": "2026-03-27T01:30:00Z",
+  "updated_at": "2026-03-27T01:30:00Z",
+  "tasks": [
+    {
+      "id": "t-001",
+      "file": "package.json",
+      "action": "modify",
+      "status": "done",
+      "description": "Add Next.js, Supabase, Tailwind dependencies",
+      "depends_on": [],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-002",
+      "file": "lib/types.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Shared types: EventType union, GitMoltEvent interface — Section 7",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-003",
+      "file": "lib/config.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Server config from env vars — Section 3.2",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-004",
+      "file": "lib/supabase/server.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Server Supabase client (service_role key) — Section 5.1",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-005",
+      "file": "lib/supabase/client.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Browser Supabase client (anon key + Realtime) — Section 5.2",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-006",
+      "file": "lib/webhook.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Signature verification + event extraction — Sections 4.2-4.3",
+      "depends_on": ["t-002"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-007",
+      "file": "app/api/webhooks/github/route.ts",
+      "action": "create",
+      "status": "done",
+      "description": "Webhook POST handler — Section 4.1 + scaffolding 9.1",
+      "depends_on": ["t-003", "t-004", "t-006"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-008",
+      "file": "app/globals.css",
+      "action": "create",
+      "status": "done",
+      "description": "Tailwind imports + fade-in animation — Section 6.7",
+      "depends_on": ["t-001"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-009",
+      "file": "components/EventCard.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Event card component with icons, colors, relative time — Section 6.5",
+      "depends_on": ["t-002", "t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-010",
+      "file": "components/Header.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Logo + live indicator — Section 6.6",
+      "depends_on": ["t-008"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-011",
+      "file": "components/LiveFeed.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Client component with Realtime subscription + reconnect backfill — Section 6.4 + scaffolding 9.3",
+      "depends_on": ["t-005", "t-009"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-012",
+      "file": "app/layout.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Root layout with dark theme, meta tags — Section 6.1",
+      "depends_on": ["t-008", "t-010"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-013",
+      "file": "app/page.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Landing page hero — Section 6.2",
+      "depends_on": ["t-012"],
+      "retry_count": 0,
+      "last_error": ""
+    },
+    {
+      "id": "t-014",
+      "file": "app/live/page.tsx",
+      "action": "create",
+      "status": "done",
+      "description": "Live feed server component with initial data fetch — Section 6.3 + scaffolding 9.2",
+      "depends_on": ["t-004", "t-011", "t-012"],
+      "retry_count": 0,
+      "last_error": ""
+    }
+  ]
+}
