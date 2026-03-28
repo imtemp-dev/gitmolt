@@ -11,18 +11,23 @@ export async function handleBrowseIssues(
   const language = args.language as string | undefined;
   const limit = args.limit as number | undefined;
 
-  if (repos.length === 0) {
-    return err("No repos specified. Pass repos parameter (e.g., repos: [\"owner/repo\"]).");
-  }
+  const isGlobal = repos.length === 0;
 
   try {
     const issues = await client.searchIssues({ repos, effort, language, limit });
 
     if (issues.length === 0) {
+      if (isGlobal) {
+        return ok("No ai-welcome issues found across GitHub. Try again later or specify repos.");
+      }
       return ok("No ai-welcome issues found matching your criteria.");
     }
 
-    const lines = [`Found ${issues.length} ai-welcome issue(s):\n`];
+    const header = isGlobal
+      ? `Found ${issues.length} ai-welcome issue(s) across GitHub:\n`
+      : `Found ${issues.length} ai-welcome issue(s):\n`;
+
+    const lines = [header];
     for (let i = 0; i < issues.length; i++) {
       const issue = issues[i];
       const effortTag = issue.effort ? `[effort:${issue.effort}]` : "";

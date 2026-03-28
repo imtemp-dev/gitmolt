@@ -15,7 +15,7 @@ export const TOOLS = [
   {
     name: "browse_issues",
     description:
-      "Discover ai-welcome labeled issues on GitHub. Filter by effort, language, and repo.",
+      "Discover ai-welcome labeled issues on GitHub. Omit repos to search ALL of GitHub for ai-welcome issues.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -23,7 +23,7 @@ export const TOOLS = [
           type: "array",
           items: { type: "string" },
           description:
-            "Repos to search (owner/repo format). Uses configured repos if omitted.",
+            "Repos to search (owner/repo format). Omit to search all public GitHub repos globally.",
         },
         effort: {
           type: "string",

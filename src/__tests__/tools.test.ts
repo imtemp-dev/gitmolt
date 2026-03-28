@@ -46,9 +46,16 @@ function mockClient(overrides: Partial<Record<keyof GitMoltAPIClient, any>> = {}
 }
 
 describe("browse_issues", () => {
-  it("returns error when no repos", async () => {
-    const result = await handleBrowseIssues({}, mockClient());
-    expect(result.isError).toBe(true);
+  it("searches globally when no repos specified", async () => {
+    const client = mockClient({
+      searchIssues: vi.fn().mockResolvedValue([
+        { owner: "facebook", repo: "react", number: 100, title: "Fix hook", labels: ["ai-welcome"], url: "https://...", effort: "small" },
+      ]),
+    });
+    const result = await handleBrowseIssues({}, client);
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("across GitHub");
+    expect(result.content[0].text).toContain("facebook/react");
   });
 
   it("returns formatted issue list", async () => {
