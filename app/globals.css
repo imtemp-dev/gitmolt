@@ -184,21 +184,19 @@ body {
   height: 100%;
   position: relative;
 }
-.stats-bar-center::before,
 .stats-bar-center::after {
   content: '';
   position: absolute; top: 0; bottom: 0;
-  width: 48px; z-index: 2;
+  right: 0; width: 48px; z-index: 2;
   pointer-events: none;
+  background: linear-gradient(270deg, rgba(7,13,26,0.98), transparent);
 }
-.stats-bar-center::before { left: 0;  background: linear-gradient(90deg,  rgba(7,13,26,0.98), transparent); }
-.stats-bar-center::after  { right: 0; background: linear-gradient(270deg, rgba(7,13,26,0.98), transparent); }
 
 .stats-pills {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 48px;
+  padding: 0 16px;
   height: 100%;
   overflow-x: auto;
   scrollbar-width: none;
@@ -233,11 +231,18 @@ body {
 /* ═══════════════════════════════════════════════════════
    TICKER TAPE
    ═══════════════════════════════════════════════════════ */
-.ticker-wrap {
-  height: 34px;
-  overflow: hidden;
+/* Full-width background strip */
+.ticker-outer {
   background: var(--bg-deep);
   border-bottom: 1px solid var(--border-dim);
+}
+
+/* Constrained to 2-column layout width */
+.ticker-wrap {
+  max-width: 1340px;
+  margin: 0 auto;
+  height: 34px;
+  overflow: hidden;
   position: relative;
   display: flex;
   align-items: center;
@@ -246,7 +251,7 @@ body {
 .ticker-wrap::after {
   content: '';
   position: absolute; top: 0; bottom: 0;
-  width: 64px; z-index: 2;
+  width: 48px; z-index: 2;
   pointer-events: none;
 }
 .ticker-wrap::before { left: 0;  background: linear-gradient(90deg,  var(--bg-deep), transparent); }
@@ -255,7 +260,7 @@ body {
 .ticker-track {
   display: flex;
   gap: 28px;
-  animation: ticker-scroll 55s linear infinite;
+  animation: ticker-scroll 120s linear infinite;
   width: max-content;
   align-items: center;
   padding-left: 24px;

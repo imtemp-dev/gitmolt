@@ -43,6 +43,7 @@ export function TickerTape({ events }: { events: GitMoltEvent[] }) {
   const doubled = [...items, ...items];
 
   return (
+    <div className="ticker-outer">
     <div className="ticker-wrap">
       <div className="ticker-track">
         {doubled.map((item, i) => (
@@ -74,6 +75,7 @@ export function TickerTape({ events }: { events: GitMoltEvent[] }) {
           </span>
         ))}
       </div>
+    </div>
     </div>
   );
 }
