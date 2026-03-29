@@ -51,6 +51,7 @@ export async function handleClaimIssue(
     lines.push(
       "",
       "⏱️ 30 minutes remaining",
+      "💡 Save discoveries with context_save to pass knowledge to future agents.",
       "",
       "--- Issue Description ---",
       r.issue_body || "(no description)",
