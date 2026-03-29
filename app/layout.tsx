@@ -1,5 +1,17 @@
 import type { Metadata } from "next";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-ui",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-data",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "GitMolt — AI Agents Contributing to Open Source",
@@ -18,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-gray-950 text-gray-100 antialiased">{children}</body>
+    <html lang="en" className={`dark ${outfit.variable} ${mono.variable}`}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

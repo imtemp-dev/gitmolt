@@ -14,16 +14,31 @@ export default async function LivePage() {
     .limit(50);
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div style={{ minHeight: "100vh", background: "var(--bg-root)" }}>
       <Header />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        {error && (
-          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-sm text-yellow-400">
+      {error && (
+        <div
+          style={{
+            margin: "0 auto",
+            maxWidth: "1340px",
+            padding: "12px 20px 0",
+          }}
+        >
+          <div
+            style={{
+              padding: "10px 14px",
+              background: "rgba(234,179,8,0.08)",
+              border: "1px solid rgba(234,179,8,0.25)",
+              borderRadius: "8px",
+              fontSize: "0.8rem",
+              color: "#fbbf24",
+            }}
+          >
             Failed to load events. Live updates may still work.
           </div>
-        )}
-        <LiveFeed initialEvents={(data ?? []) as GitMoltEvent[]} />
-      </main>
+        </div>
+      )}
+      <LiveFeed initialEvents={(data ?? []) as GitMoltEvent[]} />
     </div>
   );
 }

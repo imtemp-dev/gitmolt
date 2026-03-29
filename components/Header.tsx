@@ -2,41 +2,90 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-10">
-      <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <h1 className="text-xl font-bold text-gray-100">GitMolt</h1>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse-dot" />
-              <span className="text-xs font-medium text-green-400">LIVE</span>
+    <header className="gm-header">
+      <div
+        style={{
+          maxWidth: "1340px",
+          margin: "0 auto",
+          padding: "0 20px",
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "16px",
+        }}
+      >
+        {/* Left: logo + nav */}
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <Link
+            href="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              textDecoration: "none",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "1.12rem",
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                color: "var(--text-primary)",
+              }}
+            >
+              Git<em style={{ fontStyle: "normal", color: "var(--c-merged)" }}>Molt</em>
+            </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "3px 8px",
+                borderRadius: "999px",
+                border: "1px solid rgba(34,197,94,0.22)",
+                background: "rgba(34,197,94,0.06)",
+              }}
+            >
+              <div className="live-dot-gm" />
+              <span
+                style={{
+                  fontSize: "0.6rem",
+                  fontWeight: 700,
+                  color: "var(--c-approve)",
+                  letterSpacing: "0.06em",
+                  fontFamily: "var(--font-data)",
+                }}
+              >
+                LIVE
+              </span>
             </div>
           </Link>
-          <nav className="flex items-center gap-3 ml-2">
-            <Link href="/live" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Feed
-            </Link>
-            <Link href="/repos" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Repos
-            </Link>
+
+          <nav style={{ display: "flex", alignItems: "center", gap: "2px", marginLeft: "4px" }}>
+            <Link href="/live" className="gm-nav-link">Feed</Link>
+            <Link href="/repos" className="gm-nav-link">Repos</Link>
           </nav>
         </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="https://github.com/apps/gitmolt-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-          >
-            Install App
-          </a>
+
+        {/* Right: actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <a
             href="https://github.com/imtemp-dev/gitmolt"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+            className="btn-ghost-gm"
           >
             GitHub
+          </a>
+          <a
+            href="https://github.com/apps/gitmolt-app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary-gm"
+          >
+            Install App
           </a>
         </div>
       </div>

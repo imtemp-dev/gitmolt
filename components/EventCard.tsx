@@ -1,17 +1,20 @@
 import type { GitMoltEvent, EventType } from "@/lib/types";
 
-const EVENT_CONFIG: Record<EventType, { icon: string; color: string; label: string; verb: string }> = {
-  claim: { icon: "🤖", color: "border-blue-500/50 bg-blue-500/5", label: "Claimed", verb: "claimed" },
-  pr_opened: { icon: "📝", color: "border-green-500/50 bg-green-500/5", label: "PR Opened", verb: "opened a PR for" },
-  pr_merged: { icon: "🎉", color: "border-purple-500/50 bg-purple-500/5", label: "Merged!", verb: "merged" },
-  pr_closed: { icon: "❌", color: "border-red-500/50 bg-red-500/5", label: "Closed", verb: "closed" },
-  review_approved: { icon: "✅", color: "border-green-500/50 bg-green-500/5", label: "Approved", verb: "approved" },
-  review_changes_requested: { icon: "🔄", color: "border-yellow-500/50 bg-yellow-500/5", label: "Changes Requested", verb: "requested changes on" },
-  ci_passed: { icon: "✅", color: "border-green-500/50 bg-green-500/5", label: "CI Passed", verb: "CI passed for" },
-  ci_failed: { icon: "❌", color: "border-red-500/50 bg-red-500/5", label: "CI Failed", verb: "CI failed for" },
+const EVENT_CONFIG: Record<
+  EventType,
+  { icon: string; accentClass: string; label: string }
+> = {
+  claim:                      { icon: "🤖", accentClass: "accent-claim",   label: "Claimed" },
+  pr_opened:                  { icon: "📝", accentClass: "accent-opened",  label: "PR Opened" },
+  pr_merged:                  { icon: "🎉", accentClass: "accent-merged",  label: "Merged" },
+  pr_closed:                  { icon: "❌", accentClass: "accent-closed",  label: "Closed" },
+  review_approved:            { icon: "✅", accentClass: "accent-approve", label: "Approved" },
+  review_changes_requested:   { icon: "🔄", accentClass: "accent-changes", label: "Changes Requested" },
+  ci_passed:                  { icon: "✅", accentClass: "accent-ci",      label: "CI Passed" },
+  ci_failed:                  { icon: "❌", accentClass: "accent-closed",  label: "CI Failed" },
 };
 
-function relativeTime(dateStr: string): string {
+export function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const seconds = Math.floor(diff / 1000);
   if (seconds < 60) return "just now";
@@ -23,12 +26,16 @@ function relativeTime(dateStr: string): string {
   return `${days}d ago`;
 }
 
-function extractStats(body: string | null): { files?: number; additions?: number; deletions?: number } {
+export function extractStats(
+  body: string | null
+): { files?: number; additions?: number; deletions?: number } {
   if (!body) return {};
   const stats: { files?: number; additions?: number; deletions?: number } = {};
   const filesMatch = body.match(/(\d+)\s*files?\s*changed/i);
-  const addMatch = body.match(/(\d+)\s*insertions?/i) || body.match(/\+(\d+)/);
-  const delMatch = body.match(/(\d+)\s*deletions?/i) || body.match(/-(\d+)/);
+  const addMatch =
+    body.match(/(\d+)\s*insertions?/i) || body.match(/\+(\d+)/);
+  const delMatch =
+    body.match(/(\d+)\s*deletions?/i) || body.match(/-(\d+)/);
   if (filesMatch) stats.files = parseInt(filesMatch[1]);
   if (addMatch) stats.additions = parseInt(addMatch[1]);
   if (delMatch) stats.deletions = parseInt(delMatch[1]);
@@ -37,80 +44,230 @@ function extractStats(body: string | null): { files?: number; additions?: number
 
 function extractDescription(body: string | null): string | null {
   if (!body) return null;
-  // Try to get the Summary section
-  const summaryMatch = body.match(/## Summary\n([\s\S]*?)(?=\n##|\n---|\n\*\*|$)/);
+  const summaryMatch = body.match(
+    /## Summary\n([\s\S]*?)(?=\n##|\n---|\n\*\*|$)/
+  );
   if (summaryMatch) {
     const text = summaryMatch[1].trim().split("\n")[0];
     if (text && text.length > 10) return text;
   }
-  // Fallback: first meaningful line
-  const lines = body.split("\n").filter((l) => l.trim() && !l.startsWith("#") && !l.startsWith("-") && !l.startsWith("Closes"));
+  const lines = body
+    .split("\n")
+    .filter(
+      (l) =>
+        l.trim() &&
+        !l.startsWith("#") &&
+        !l.startsWith("-") &&
+        !l.startsWith("Closes")
+    );
   return lines[0]?.slice(0, 120) ?? null;
 }
 
-export function EventCard({ event }: { event: GitMoltEvent }) {
+export function EventCard({
+  event,
+  isNew,
+}: {
+  event: GitMoltEvent;
+  isNew?: boolean;
+}) {
   const config = EVENT_CONFIG[event.event_type] ?? EVENT_CONFIG.claim;
-  const ref = event.pr_number ? `#${event.pr_number}` : event.issue_number ? `#${event.issue_number}` : "";
+  const ref = event.pr_number
+    ? `#${event.pr_number}`
+    : event.issue_number
+    ? `#${event.issue_number}`
+    : "";
   const stats = extractStats(event.body);
   const description = extractDescription(event.body);
   const hasStats = stats.files || stats.additions || stats.deletions;
+  const isMerged = event.event_type === "pr_merged";
 
   return (
-    <div className={`animate-fade-in border rounded-lg p-4 ${config.color} hover:brightness-110 transition-all`}>
-      {/* Top: agent + time */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{config.icon}</span>
-          <span className="text-sm font-medium text-gray-300">{event.agent_name}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">{config.label}</span>
+    <div
+      className={`event-card-gm ${config.accentClass} ${isMerged ? "is-merged" : ""}`}
+    >
+      {isNew && <span className="new-badge-gm">NEW</span>}
+
+      {/* Top: icon + agent + badge + time */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "7px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "6px",
+              background: "rgba(255,255,255,0.035)",
+              border: "1px solid var(--border-dim)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.88rem",
+              flexShrink: 0,
+            }}
+          >
+            {config.icon}
+          </div>
+          <span
+            style={{
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              color: "var(--text-secondary)",
+              fontFamily: "var(--font-data)",
+            }}
+          >
+            {event.agent_name}
+          </span>
+          <span
+            style={{
+              fontSize: "0.6rem",
+              fontWeight: 600,
+              padding: "2px 7px",
+              borderRadius: "999px",
+              background: "rgba(255,255,255,0.035)",
+              border: "1px solid var(--border-dim)",
+              color: "var(--card-accent)",
+              letterSpacing: "0.02em",
+              fontFamily: "var(--font-data)",
+            }}
+          >
+            {config.label}
+          </span>
         </div>
-        <span className="text-xs text-gray-500">{relativeTime(event.created_at)}</span>
+        <span
+          style={{
+            fontSize: "0.66rem",
+            color: "var(--text-muted)",
+            fontFamily: "var(--font-data)",
+            flexShrink: 0,
+          }}
+        >
+          {relativeTime(event.created_at)}
+        </span>
       </div>
 
       {/* Title */}
-      <a
-        href={event.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block group"
+      <div
+        style={{
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          color: "var(--text-primary)",
+          lineHeight: 1.45,
+          marginBottom: description || hasStats ? "5px" : "0",
+        }}
       >
-        <h3 className="text-sm font-semibold text-gray-100 group-hover:text-blue-300 transition-colors">
-          {event.title} <span className="text-gray-500">{ref}</span>
-        </h3>
-      </a>
+        {event.title}{" "}
+        {ref && (
+          <span
+            style={{
+              fontFamily: "var(--font-data)",
+              fontSize: "0.75rem",
+              color: "var(--text-muted)",
+            }}
+          >
+            {ref}
+          </span>
+        )}
+      </div>
 
       {/* Description */}
       {description && (
-        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{description}</p>
+        <p
+          style={{
+            fontSize: "0.74rem",
+            color: "var(--text-muted)",
+            lineHeight: 1.5,
+            marginBottom: hasStats ? "8px" : "0",
+          }}
+        >
+          {description}
+        </p>
       )}
 
-      {/* Stats bar */}
+      {/* Stats */}
       {hasStats && (
-        <div className="flex items-center gap-3 mt-3">
-          {stats.files && (
-            <span className="text-xs text-gray-400">
-              <span className="text-gray-500">Files:</span> {stats.files}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            marginBottom: "8px",
+          }}
+        >
+          {stats.files != null && (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                fontFamily: "var(--font-data)",
+                color: "var(--text-muted)",
+              }}
+            >
+              {stats.files} files
             </span>
           )}
-          {stats.additions && (
-            <span className="text-xs text-green-400">+{stats.additions}</span>
+          {stats.additions != null && (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                fontFamily: "var(--font-data)",
+                color: "#4ade80",
+              }}
+            >
+              +{stats.additions}
+            </span>
           )}
-          {stats.deletions && (
-            <span className="text-xs text-red-400">-{stats.deletions}</span>
+          {stats.deletions != null && (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                fontFamily: "var(--font-data)",
+                color: "#f87171",
+              }}
+            >
+              -{stats.deletions}
+            </span>
           )}
         </div>
       )}
 
-      {/* Footer: repo + link */}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-800/50">
-        <span className="text-xs text-gray-500 font-mono">
+      {/* Footer */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingTop: "8px",
+          borderTop: "1px solid var(--border-dim)",
+          marginTop: description || hasStats ? "0" : "8px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.67rem",
+            fontFamily: "var(--font-data)",
+            color: "var(--text-muted)",
+          }}
+        >
           {event.repo_owner}/{event.repo_name}
         </span>
         <a
           href={event.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+          style={{
+            fontSize: "0.67rem",
+            color: "var(--c-opened)",
+            textDecoration: "none",
+            opacity: 0.65,
+            transition: "opacity 0.15s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.65")}
         >
           View on GitHub →
         </a>
