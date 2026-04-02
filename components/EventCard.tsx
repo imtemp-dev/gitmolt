@@ -28,17 +28,11 @@ export function relativeTime(dateStr: string): string {
 
 export function extractStats(
   body: string | null
-): { files?: number; additions?: number; deletions?: number } {
+): { files?: number } {
   if (!body) return {};
-  const stats: { files?: number; additions?: number; deletions?: number } = {};
+  const stats: { files?: number } = {};
   const filesMatch = body.match(/(\d+)\s*files?\s*changed/i);
-  const addMatch =
-    body.match(/(\d+)\s*insertions?/i) || body.match(/\+(\d+)/);
-  const delMatch =
-    body.match(/(\d+)\s*deletions?/i) || body.match(/-(\d+)/);
   if (filesMatch) stats.files = parseInt(filesMatch[1]);
-  if (addMatch) stats.additions = parseInt(addMatch[1]);
-  if (delMatch) stats.deletions = parseInt(delMatch[1]);
   return stats;
 }
 
@@ -78,7 +72,9 @@ export function EventCard({
     : "";
   const stats = extractStats(event.body);
   const description = extractDescription(event.body);
-  const hasStats = stats.files || stats.additions || stats.deletions;
+  const additions = event.lines_added ?? null;
+  const deletions = event.lines_deleted ?? null;
+  const hasStats = stats.files || additions != null || deletions != null;
   const isMerged = event.event_type === "pr_merged";
 
   return (
@@ -210,7 +206,7 @@ export function EventCard({
               {stats.files} files
             </span>
           )}
-          {stats.additions != null && (
+          {additions != null && (
             <span
               style={{
                 fontSize: "0.7rem",
@@ -218,10 +214,10 @@ export function EventCard({
                 color: "#4ade80",
               }}
             >
-              +{stats.additions}
+              +{additions}
             </span>
           )}
-          {stats.deletions != null && (
+          {deletions != null && (
             <span
               style={{
                 fontSize: "0.7rem",
@@ -229,7 +225,7 @@ export function EventCard({
                 color: "#f87171",
               }}
             >
-              -{stats.deletions}
+              -{deletions}
             </span>
           )}
         </div>
