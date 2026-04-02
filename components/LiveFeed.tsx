@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import { createBrowserClient } from "@/lib/supabase/client";
-import { EventCard, extractStats } from "./EventCard";
+import { EventCard } from "./EventCard";
 import { StatsPillBar } from "./StatsPillBar";
 import { TickerTape } from "./TickerTape";
 import { Sidebar } from "./Sidebar";
@@ -140,7 +140,7 @@ export function LiveFeed({ initialEvents }: { initialEvents: GitMoltEvent[] }) {
     ).length;
 
     const linesAdded = events.reduce(
-      (sum, e) => sum + (extractStats(e.body).additions ?? 0),
+      (sum, e) => sum + (e.lines_added ?? 0),
       0
     );
 
