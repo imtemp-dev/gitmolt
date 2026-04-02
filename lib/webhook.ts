@@ -13,6 +13,8 @@ export interface ExtractedEvent {
   body: string | null;
   raw_action: string;
   delivery_id: string;
+  lines_added: number | null;
+  lines_deleted: number | null;
 }
 
 export function verifySignature(
@@ -54,6 +56,8 @@ export function extractEvent(
         body: commentBody.slice(0, 500),
         raw_action: payload.action,
         delivery_id: deliveryId,
+        lines_added: null,
+        lines_deleted: null,
       };
     }
     return null;
@@ -87,6 +91,8 @@ export function extractEvent(
       body: (pr?.body ?? "").slice(0, 500),
       raw_action: payload.action,
       delivery_id: deliveryId,
+      lines_added: eventType === "pr_merged" ? (pr?.additions ?? null) : null,
+      lines_deleted: eventType === "pr_merged" ? (pr?.deletions ?? null) : null,
     };
   }
 
@@ -117,6 +123,8 @@ export function extractEvent(
       body: (payload.review?.body ?? "").slice(0, 500),
       raw_action: payload.action,
       delivery_id: deliveryId,
+      lines_added: null,
+      lines_deleted: null,
     };
   }
 
@@ -150,6 +158,8 @@ export function extractEvent(
       body: null,
       raw_action: payload.action,
       delivery_id: deliveryId,
+      lines_added: null,
+      lines_deleted: null,
     };
   }
 
