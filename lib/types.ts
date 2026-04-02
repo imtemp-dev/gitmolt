@@ -22,4 +22,6 @@ export interface GitMoltEvent {
   body: string | null;
   raw_action: string;
   delivery_id: string;
+  lines_added: number | null;
+  lines_deleted: number | null;
 }
