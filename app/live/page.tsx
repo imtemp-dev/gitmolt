@@ -9,7 +9,7 @@ export default async function LivePage() {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select("id,created_at,event_type,agent_name,repo_owner,repo_name,issue_number,pr_number,title,url,body,raw_action,delivery_id,lines_added,lines_deleted")
     .order("created_at", { ascending: false })
     .limit(50);
 
