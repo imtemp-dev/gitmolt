@@ -29,6 +29,8 @@ const EVENT_TO_FILTER: Record<EventType, FilterType> = {
   ci_failed:                "ci",
 };
 
+const RELATIVE_TIME_REFRESH_MS = 60 * 1000;
+
 // IDs of events that were just added live (show NEW badge)
 // Capped at 500 to prevent unbounded growth in long-running sessions.
 const NEW_IDS = new Set<string>();
@@ -43,8 +45,20 @@ function trackNewId(id: string) {
 export function LiveFeed({ initialEvents }: { initialEvents: GitMoltEvent[] }) {
   const [events, setEvents] = useState<GitMoltEvent[]>(initialEvents);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [, setTimeRefreshTick] = useState(0);
   const isFirstSubscribe = useRef(true);
   const latestTimestampRef = useRef(initialEvents[0]?.created_at ?? "");
+
+  // Refresh relative timestamps while the feed stays open.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setTimeRefreshTick((tick) => tick + 1);
+    }, RELATIVE_TIME_REFRESH_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   // ── Realtime subscription ────────────────────────────
   useEffect(() => {
